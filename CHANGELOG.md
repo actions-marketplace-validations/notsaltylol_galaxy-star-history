@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.0 - 2026-09-27
+
 - Composite GitHub Action that renders a repository's star history as an animated galaxy GIF on a CPU-only Ubuntu runner (NumPy + Pillow).
 - One point per current star, from zero to one million stars, with no sampling or scaling.
 - Warm nucleus, cool outer disk, curved trails, and bloom derived from the stars themselves.
