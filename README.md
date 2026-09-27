@@ -8,8 +8,6 @@ there. The galaxy starts empty, fills as people arrive, then holds and slowly tu
 It runs in your own GitHub Actions: no third-party service, no GPU, no browser. A plain
 Ubuntu runner renders a GIF with NumPy and Pillow, and GitHub serves the file.
 
-This is a Marketplace-ready scaffold; no release or `v1` tag exists yet.
-
 ## Examples
 
 Real renders from the GitHub star-history API at default settings, published on the
@@ -25,7 +23,7 @@ facebook/react: 250,764 stars, rendered 2026-09-26 at defaults.
 
 ## Use the action
 
-Once released, pin `@v1` (moved to each new 1.x release), an exact tag such as `@v1.0.0`,
+Pin `@v1` (moved to each new 1.x release), an exact tag such as `@v1.0.0`,
 or a reviewed commit SHA:
 
 ```yaml

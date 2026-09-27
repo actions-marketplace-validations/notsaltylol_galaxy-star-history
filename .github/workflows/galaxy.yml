@@ -33,13 +33,18 @@ jobs:
         run: |
           # The assets branch is always a single commit. Rewriting it keeps the repository from
           # accumulating a multi-megabyte GIF in history every time the galaxy changes.
-          cp galaxy.gif galaxy.json "$RUNNER_TEMP/"
-          rm galaxy.gif galaxy.json
-          git checkout --orphan assets
+          # Build it in a separate worktree: emptying the job workspace would delete action.yml,
+          # and the composite action's post step needs it after this step.
+          worktree="$RUNNER_TEMP/assets"
+          git worktree add --detach --quiet "$worktree"
+          cd "$worktree"
+          git checkout --quiet --orphan assets
           git rm -rf --ignore-unmatch --quiet .
-          cp "$RUNNER_TEMP/galaxy.gif" "$RUNNER_TEMP/galaxy.json" .
+          cp "$GITHUB_WORKSPACE/galaxy.gif" "$GITHUB_WORKSPACE/galaxy.json" .
           git add galaxy.gif galaxy.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit --quiet -m 'Update star galaxy'
           git push --force origin HEAD:assets
+          cd "$GITHUB_WORKSPACE"
+          git worktree remove --force "$worktree"
