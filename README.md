@@ -1,19 +1,18 @@
 # Galaxy Star History
 
-Turn a repository's GitHub star history into an animated galaxy in its README.
-Every GitHub star becomes **one point**. The animation starts at zero, adds points
-according to GitHub's daily history, reaches the current star count, and holds the
-completed galaxy before replaying. Rotation speed stays constant throughout.
+Your repository's stars, drawn as a galaxy in your README.
 
-**GIF output. No SVG, GPU, browser, hosted API, or external rendering service.**
-The visual uses a golden nucleus, blue-violet outer stars, curved light trails,
-and bloom derived from the stars themselves. The action runs on a standard Ubuntu runner and supports up to **1,000,000 stars**
-without sampling. This repository is a Marketplace-ready scaffold; no Marketplace
-release or `v1` tag has been published yet.
+Every point of light is one real person who starred the repo. If you starred it, you are in
+there. The galaxy starts empty, fills as people arrive, then holds and slowly turns.
+
+It runs in your own GitHub Actions: no third-party service, no GPU, no browser. A plain
+Ubuntu runner renders a GIF with NumPy and Pillow, and GitHub serves the file.
+
+This is a Marketplace-ready scaffold; no release or `v1` tag exists yet.
 
 ## Use the action
 
-Once a release is published, pin it to a reviewed commit SHA or use its version tag:
+Pin a reviewed commit SHA, or the release tag once published:
 
 ```yaml
 - uses: actions/checkout@v4
@@ -25,56 +24,56 @@ Once a release is published, pin it to a reviewed commit SHA or use its version 
     output: galaxy.gif
 ```
 
-The action generates `galaxy.gif` and `galaxy.json`. It does **not** commit or push
-anything itself. The JSON manifest records the source snapshot, exact particle
-count, every frame's count, and the image checksum for auditing.
+The action writes `galaxy.gif` and a `galaxy.json` manifest. It does not commit or push.
 
-For this repository, [the included workflow](.github/workflows/galaxy.yml) uses the
-local action, runs daily or manually, and publishes the image and manifest to an
-`assets` branch. In another repository, copy that workflow and replace `uses: ./`
-with `uses: notsaltylol/galaxy-star-history@v1` after the release exists. Keep
-`contents: write` for the publishing step; the generation step needs only metadata
-read access. No custom PAT is required for a public repository on GitHub.com.
+[The included workflow](.github/workflows/galaxy.yml) runs daily and on demand and publishes
+both files to an `assets` branch. To reuse it, copy it and replace `uses: ./` with
+`uses: notsaltylol/galaxy-star-history@v1`. The publish step needs `contents: write`; a
+public GitHub.com repository needs no personal access token.
 
-After the first successful publishing run, put this in your README, replacing
-`OWNER/REPO` with the repository **where the workflow runs**:
+After the first publish, add this to your README, with `OWNER/REPO` set to the repository
+where the workflow runs:
 
 ```markdown
 ![Animated galaxy of repository stars](https://raw.githubusercontent.com/OWNER/REPO/assets/galaxy.gif)
 ```
 
-GitHub serves the file. The GIF plays immediately in the README; the underlying
-data changes on the workflow schedule. GitHub's image cache may delay refreshes.
-Scheduled runs are best-effort and GitHub may disable schedules in inactive public
-repositories. Use **Actions → Update star galaxy → Run workflow** to refresh manually.
+Scheduled runs are best-effort, and GitHub may disable schedules in inactive public
+repositories. Use **Actions > Update star galaxy > Run workflow** to refresh by hand.
 
-## Accuracy contract
+## What you see
 
-- **No sampling, representative particles, count scaling, or decorative stars.**
-  N current GitHub stars means N stored particles and N point contributions in the
-  final frame. Zero-star repositories stay empty.
-- All pages of GitHub's `/repos/{owner}/{repo}/stargazers/history` endpoint are read.
-  The action compares their summed daily counts with `/stargazers/count`.
-- If the totals disagree, it retries the snapshot once and then **fails without
-  replacing the existing GIF**. It never silently drops or invents stars.
-- Births follow the API's daily buckets. Many stars may appear in one frame; the
-  daily API does not supply an individual timestamp or identity for each star.
-  This is a replay of the available history, not a claim to reconstruct unstars
-  or exact historical net totals.
-- All stars rotate together at a fixed angular velocity. The history clock and
-  rotation clock are independent. Growth occupies the first 80% of the clip;
-  the final count holds for the remainder while rotation continues.
-- The final-to-first loop deliberately resets the galaxy to zero. It is not a
-  seamless physical orbit loop.
-- Points can overlap on the same pixel at README resolution. Every point still
-  contributes to brightness; one million points cannot all be separately resolved
-  in an 800-pixel-wide image. The on-image counter and JSON manifest expose the
-  exact count. Bloom is derived solely from actual particles. Trails and diffraction spikes
-  decorate a fixed subset of existing stars (at most 180 trails and 45 spikes);
-  those limits never reduce the number of star points.
-- More than one million stars is an explicit error, never an implicit cap.
+- **Growth follows stars, not the calendar.** The first frame is empty. Stars arrive at a
+  steady rate and reach the current count halfway through. The date counter races through
+  quiet years and slows during bursts.
+- **Hold and fade.** The finished galaxy holds and rotates for the second half. The last
+  0.6 seconds fade to black, so the loop restart is not a hard cut. The very last frames
+  are that fade, so the finished galaxy is best seen mid-loop.
+- **Constant rotation**, set by `rotation-period` and independent of growth.
+- **Timeline.** The bar under the galaxy runs from the year the repository was created to the
+  year of its most recent star, which is also the date shown on the finished galaxy.
+- **Trails and diffraction spikes** highlight a fixed subset of existing stars: at most
+  one trail per 40 stars, up to 180, and one spike per 150 stars, up to 45. They never add
+  points.
+- **Labels** use Pillow's embedded Aileron font, so output is identical on any runner. Long
+  `owner/repo` names end in an ellipsis.
 
-[GitHub history API documentation](https://docs.github.com/en/rest/activity/starring#get-repository-star-history)
+## Updates and cost
+
+The GIF and its signature depend only on the star history and the inputs, not on when the
+API was read, so the GIF stays byte-identical until someone stars or unstars the repo. A
+renderer upgrade (a new action version) also re-renders it. On unchanged days `changed` is
+`false` and nothing is published.
+
+When it does publish, the included workflow replaces the `assets` branch with a single
+commit and force-pushes it, so your history does not collect a multi-megabyte GIF per
+update. If you pinned an `assets` commit SHA, expect it to be rewritten.
+
+The GIF is large, because the whole galaxy moves in every frame, and it is downloaded on
+every README view. At defaults (800 px, 10 fps, 10 s) real repositories measure about 7.5–10 MB:
+about 8 MB for a 10,000-star repository and about 10 MB for a 250,000-star one. Size scales
+roughly with pixel area and frame count, so `width: 600` cuts it by about 40%, and a lower
+`fps` or a shorter `duration` shrinks it in proportion (`duration: 6` is about 4.5–6 MB).
 
 ## Inputs
 
@@ -84,21 +83,32 @@ repositories. Use **Actions → Update star galaxy → Run workflow** to refresh
 | `token` | `${{ github.token }}` | Token permitted to read target repository metadata |
 | `output` | `galaxy.gif` | Relative workspace GIF path; matching `.json` is also written |
 | `width` | `800` | Image width, 400–1200 pixels |
-| `fps` | `15` | 5–25 frames per second |
+| `fps` | `10` | 5–25 frames per second |
 | `duration` | `10` | 4–30 seconds, including final hold |
 | `rotation-period` | `30` | 5–120 seconds per full rotation |
 
 Outputs: `path`, `manifest`, `changed` (`true`/`false`), and `stars`.
-The renderer is CPU-only, using NumPy for point projection and Pillow for GIF
-encoding. Runtime and memory increase with frame count, resolution, and stars.
-Start with defaults; the CI workflow renders a full million-star fixture and
-uploads the benchmark GIF and count report. A render is skipped when the existing
-GIF, manifest, source data, and options match within the same UTC day.
 
-Supported action environment: **Linux runners with Bash and Python setup support**.
-GitHub Enterprise Server is not supported in this initial version. For private
-repositories, explicitly ensure the publishing destination is appropriate for the
-repository data; the default `GITHUB_TOKEN` only covers its own repository.
+Linux runners only; GitHub Enterprise Server is not supported. For private repositories,
+check that the publishing destination is appropriate for the data.
+
+## What is exact, and what is art
+
+The counts are exact. The positions are decorative.
+
+- **Counts.** N stars on GitHub means N points in the final frame. No sampling, no scaling.
+- **Positions** encode only arrival order: older stars sit in the nucleus, newer ones in the
+  outer disk. The arms, clusters, and halo are synthetic. A point does not identify a person.
+- **Timing.** GitHub reports stars per day, not per person, so stars from one day appear in
+  history order across frames. Unstars are not replayed.
+- **Source.** The action reads every page of `/repos/{owner}/{repo}/stargazers/history`
+  (weekly buckets with per-day counts) and `/repos/{owner}/{repo}/stargazers/count`. If the
+  totals disagree it retries once, then fails without replacing the existing GIF.
+  [API docs](https://docs.github.com/en/rest/activity/starring#get-repository-star-history).
+- **Manifest.** `galaxy.json` records the snapshot, per-frame star counts, the GIF checksum,
+  and the render signature. `snapshot.observed` is the UTC time of the API read; the signature
+  excludes it. The final frame's date and the timeline's right-hand label are the last star day.
+- **Limit.** Up to 1,000,000 stars. Beyond that the action fails rather than sample.
 
 ## Development
 
@@ -109,22 +119,17 @@ python3.12 -m venv .venv
 .venv/bin/python examples/generate.py --stars 1000000 --output /tmp/million.gif
 ```
 
-For real data, set `INPUT_REPOSITORY=owner/repo` and `INPUT_TOKEN` in the environment,
-then run `.venv/bin/python -m galaxy`. Never put the token in source or the README.
-Fixtures are labeled `example/synthetic-galaxy`; they are not actual repository data.
+For real data, set `INPUT_REPOSITORY=owner/repo` and `INPUT_TOKEN`, then run
+`.venv/bin/python -m galaxy`. Never commit the token. Fixtures use the name
+`example/synthetic-galaxy` and are not real data.
 
 ## Publish to Marketplace
 
-1. Push this scaffold to the public repository and let CI pass on Ubuntu.
-2. Run **Update star galaxy** and inspect the README GIF and accuracy manifest.
-3. Review the action name's availability and the repository's license and metadata.
-4. Create the first release (for example `v1.0.0`) and a corresponding `v1` tag.
-5. In GitHub's release UI select **Publish this Action to the GitHub Marketplace**,
-   choose the categories, and accept GitHub's Marketplace terms if prompted.
+1. Push to the public repository and let CI pass.
+2. Run **Update star galaxy** and check the GIF and manifest.
+3. Create a release (for example `v1.0.0`) and a matching `v1` tag, choosing
+   **Publish this Action to the GitHub Marketplace**.
 
-The repository includes root `action.yml`, branding, MIT license, usage docs,
-unit tests, scheduled publication, and CI. Publishing a GitHub release is separate
-from scaffolding the action; this scaffold does not automatically publish releases.
 See [GitHub's publishing guide](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace).
 
 ## License

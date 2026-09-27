@@ -1,5 +1,5 @@
 name: Galaxy Star History
-description: Animate every GitHub star as a galaxy point in a README GIF. Exact counts, no GPU, no hosted service.
+description: Every star on your repo is a point of light in an animated galaxy GIF, rendered in your own Actions runner.
 author: notsaltylol
 branding:
   icon: star
@@ -19,7 +19,7 @@ inputs:
     default: '800'
   fps:
     description: Frames per second (5–25)
-    default: '15'
+    default: '10'
   duration:
     description: Animation duration in seconds (4–30), including a final hold
     default: '10'

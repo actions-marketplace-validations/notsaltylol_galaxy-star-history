@@ -18,14 +18,14 @@ def main():
     if relative.is_absolute() or path == root or root not in path.parents or '.git' in path.relative_to(root).parts or path.suffix != '.gif' or '\n' in output or '\r' in output:
         raise ValueError('output must be a .gif path inside the workspace and outside .git')
     options = {'width': int(os.environ.get('INPUT_WIDTH', '800')),
-               'fps': int(os.environ.get('INPUT_FPS', '15')),
+               'fps': int(os.environ.get('INPUT_FPS', '10')),
                'duration': float(os.environ.get('INPUT_DURATION', '10')),
                'rotation_period': float(os.environ.get('INPUT_ROTATION_PERIOD', '30'))}
     data = fetch_snapshot(repository, os.environ.get('INPUT_TOKEN', ''))
-    # Stable within the same UTC day; includes data and renderer options, not just star count.
-    data['observed'] = max(data['created'], data['observed'] // 86400 * 86400,
-                           max((d['time'] for d in data['daily']), default=0))
-    signature = hashlib.sha256(json.dumps([VERSION, data, options], sort_keys=True).encode()).hexdigest()
+    # The rendered clip depends only on the star history, not on when it was read, so the
+    # signature (and the GIF) stays byte-identical from day to day until a star is added or removed.
+    history = {key: data[key] for key in ('repository', 'created', 'stars', 'daily')}
+    signature = hashlib.sha256(json.dumps([VERSION, history, options], sort_keys=True).encode()).hexdigest()
     manifest_path = path.with_suffix('.json')
     old = {}
     if manifest_path.exists():
@@ -54,6 +54,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except (ValueError, KeyError, OSError) as error:
+    except (ValueError, KeyError, OSError, RuntimeError) as error:
         print(f'Galaxy generation failed: {error}', file=sys.stderr)
         sys.exit(1)

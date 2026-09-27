@@ -41,9 +41,10 @@ if __name__ == '__main__':
     parser.add_argument('--stars', type=int, default=1000)
     parser.add_argument('--output', default='example.gif')
     parser.add_argument('--smooth', action='store_true', help='Use a gradual seven-year history')
+    parser.add_argument('--width', type=int, default=800)
     args = parser.parse_args()
     start = time.perf_counter()
-    result = render_gif((smooth_fixture if args.smooth else fixture)(args.stars), args.output)
+    result = render_gif((smooth_fixture if args.smooth else fixture)(args.stars), args.output, width=args.width)
     result['render_seconds'] = round(time.perf_counter() - start, 3)
     result['bytes'] = Path(args.output).stat().st_size
     Path(args.output).with_suffix('.json').write_text(json.dumps(result, indent=2) + '\n')
