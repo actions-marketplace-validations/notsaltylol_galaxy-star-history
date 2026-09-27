@@ -22,3 +22,4 @@
 - The timeline's right-hand label is the year of the most recent star (the finished galaxy's date) instead of `NOW`.
 - Internal consistency failures during rendering are reported as `Galaxy generation failed: ...` rather than a traceback, and are not skipped under `python -O`.
 - The disk now rotates against the arms' winding so the spiral arms trail, as in a real galaxy.
+- Release workflow: one-click versioned releases with changelog roll-up, GitHub Release notes, and a moving `v1` major tag.

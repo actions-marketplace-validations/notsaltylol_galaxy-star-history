@@ -25,7 +25,8 @@ facebook/react: 250,764 stars, rendered 2026-09-26 at defaults.
 
 ## Use the action
 
-Pin a reviewed commit SHA, or the release tag once published:
+Once released, pin `@v1` (moved to each new 1.x release), an exact tag such as `@v1.0.0`,
+or a reviewed commit SHA:
 
 ```yaml
 - uses: actions/checkout@v4
@@ -136,14 +137,27 @@ For real data, set `INPUT_REPOSITORY=owner/repo` and `INPUT_TOKEN`, then run
 `.venv/bin/python -m galaxy`. Never commit the token. Fixtures use the name
 `example/synthetic-galaxy` and are not real data.
 
-## Publish to Marketplace
+## Release and publish to Marketplace
 
-1. Push to the public repository and let CI pass.
-2. Run **Update star galaxy** and check the GIF and manifest.
-3. Create a release (for example `v1.0.0`) and a matching `v1` tag, choosing
-   **Publish this Action to the GitHub Marketplace**.
+Add entries under `## Unreleased` in [CHANGELOG.md](CHANGELOG.md) as you go. To release, run
+**Actions > Release > Run workflow** on `main` with a version such as `1.0.0` (tick
+**prerelease**, or use a version like `1.1.0-rc.1`, for a prerelease). The
+[workflow](.github/workflows/release.yml) runs the tests and a 1,000-star smoke render, renames
+`Unreleased` to `1.0.0 - <date>`, commits and tags `v1.0.0`, creates the GitHub Release with that
+changelog section as notes, and moves `v1` to the new tag (not for prereleases). Pushing a
+`vX.Y.Z` tag by hand does the same from that tag, without editing the changelog; the changelog
+at that commit must already have a `## X.Y.Z` section.
 
-See [GitHub's publishing guide](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace).
+**Marketplace.** GitHub documents only one way to publish: edit or draft the release in the web
+UI, tick **Publish this Action to the GitHub Marketplace**, pick a category, and confirm with
+two-factor authentication; the owner must first accept the Marketplace Developer Agreement
+([docs](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace)).
+There is no API field for it, and a release created with `GITHUB_TOKEN` cannot pass the 2FA step,
+so after each run open the release, choose **Edit**, tick the box, and **Update release**. To
+try skipping that for later releases, add a `RELEASE_TOKEN` secret: a fine-grained personal
+access token (Contents: read and write) from a maintainer with 2FA. The workflow then creates
+the release as that person; community reports say such releases of an already-listed action
+are published automatically, but GitHub does not document this, so check the listing.
 
 ## License
 
