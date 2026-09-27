@@ -13,6 +13,7 @@
 - Trails and diffraction spikes scale with star count (at most `min(180, stars // 40)` and `min(45, stars // 150)`).
 - Render signature excludes the time of the API read, so the GIF is byte-identical and nothing is published until the star history changes; the manifest's `snapshot.observed` is the UTC time of the API read, while the final frame's date and the timeline's right-hand label are the last star day.
 - The `assets` branch is a single force-pushed commit, so repository history does not accumulate GIFs.
+- README embeds real example galaxies for star-history/star-history and facebook/react from the `examples` branch.
 - Labels use Pillow's embedded Aileron font for runner-independent output; long repository names are truncated with an ellipsis.
 - Trails are rendered with vectorized NumPy instead of per-star loops.
 - A single projection function is shared by stars, trails, and spikes.

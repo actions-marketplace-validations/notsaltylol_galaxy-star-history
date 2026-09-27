@@ -10,6 +10,19 @@ Ubuntu runner renders a GIF with NumPy and Pillow, and GitHub serves the file.
 
 This is a Marketplace-ready scaffold; no release or `v1` tag exists yet.
 
+## Examples
+
+Real renders from the GitHub star-history API at default settings, published on the
+[`examples` branch](https://github.com/notsaltylol/galaxy-star-history/tree/examples).
+
+![star-history/star-history, 9,537 stars, as a galaxy](https://raw.githubusercontent.com/notsaltylol/galaxy-star-history/examples/star-history.gif)
+
+star-history/star-history: 9,537 stars, rendered 2026-09-26 at defaults.
+
+![facebook/react, 250,764 stars, as a galaxy](https://raw.githubusercontent.com/notsaltylol/galaxy-star-history/examples/react.gif)
+
+facebook/react: 250,764 stars, rendered 2026-09-26 at defaults.
+
 ## Use the action
 
 Pin a reviewed commit SHA, or the release tag once published:
