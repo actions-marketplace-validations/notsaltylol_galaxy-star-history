@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 from .history import validate_snapshot
 
-VERSION = '4'
+VERSION = '5'
 GROWTH = .5          # Fraction of the clip spent growing; the rest holds the finished galaxy.
 FADE_SECONDS = .6    # Crossfade to the background before the loop restarts.
 MAX_TRAILS = 180
@@ -90,10 +90,11 @@ def screen_positions(x, y, angle, width, height):
     Returns (px, py). The rotation and tilt are folded into one affine map; a scalar angle keeps
     float32 inputs in float32, which halves the work for a million stars.
     """
+    # The disk turns against the arms' winding, so the spiral arms trail as in a real galaxy.
     if np.ndim(angle):
-        cosine, sine = np.cos(angle), np.sin(angle)
+        cosine, sine = np.cos(angle), -np.sin(angle)
     else:
-        cosine, sine = math.cos(angle), math.sin(angle)
+        cosine, sine = math.cos(angle), -math.sin(angle)
     scale = width * PROJECTION_SCALE
     px = width * .5 + x * ((.97 * cosine + .16 * sine) * scale) + y * ((.16 * cosine - .97 * sine) * scale)
     py = height * .48 + x * ((.56 * sine - .22 * cosine) * scale) + y * ((.22 * sine + .56 * cosine) * scale)

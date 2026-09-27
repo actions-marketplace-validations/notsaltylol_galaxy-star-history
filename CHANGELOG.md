@@ -21,3 +21,4 @@
 - Default `fps` is 10 (was 15), which cuts real-repository GIFs by about a third (for example 11.3 MB to 7.7 MB at 9.5k stars, 14.6 MB to 9.7 MB at 250k stars).
 - The timeline's right-hand label is the year of the most recent star (the finished galaxy's date) instead of `NOW`.
 - Internal consistency failures during rendering are reported as `Galaxy generation failed: ...` rather than a traceback, and are not skipped under `python -O`.
+- The disk now rotates against the arms' winding so the spiral arms trail, as in a real galaxy.
