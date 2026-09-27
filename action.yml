@@ -1,0 +1,66 @@
+name: Galaxy Star History
+description: Animate every GitHub star as a galaxy point in a README GIF. Exact counts, no GPU, no hosted service.
+author: notsaltylol
+branding:
+  icon: star
+  color: purple
+inputs:
+  repository:
+    description: Repository to visualize (owner/repo)
+    default: ${{ github.repository }}
+  token:
+    description: GitHub token with read access to repository metadata
+    default: ${{ github.token }}
+  output:
+    description: GIF output path relative to the workspace; also writes a JSON accuracy manifest
+    default: galaxy.gif
+  width:
+    description: Image width in pixels (400–1200)
+    default: '800'
+  fps:
+    description: Frames per second (5–25)
+    default: '15'
+  duration:
+    description: Animation duration in seconds (4–30), including a final hold
+    default: '10'
+  rotation-period:
+    description: Seconds per full galaxy rotation (5–120); speed stays constant during growth
+    default: '30'
+outputs:
+  path:
+    description: Generated GIF path
+    value: ${{ steps.generate.outputs.path }}
+  manifest:
+    description: JSON snapshot and per-frame particle counts
+    value: ${{ steps.generate.outputs.manifest }}
+  changed:
+    description: Whether the GIF was regenerated
+    value: ${{ steps.generate.outputs.changed }}
+  stars:
+    description: Exact current star count and final particle count
+    value: ${{ steps.generate.outputs.stars }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install renderer
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        python -m venv "$RUNNER_TEMP/galaxy-star-history-venv"
+        "$RUNNER_TEMP/galaxy-star-history-venv/bin/python" -m pip install --disable-pip-version-check -r "$ACTION_PATH/requirements.txt"
+    - id: generate
+      shell: bash
+      env:
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_OUTPUT: ${{ inputs.output }}
+        INPUT_WIDTH: ${{ inputs.width }}
+        INPUT_FPS: ${{ inputs.fps }}
+        INPUT_DURATION: ${{ inputs.duration }}
+        INPUT_ROTATION_PERIOD: ${{ inputs.rotation-period }}
+        PYTHONPATH: ${{ github.action_path }}
+      run: '"$RUNNER_TEMP/galaxy-star-history-venv/bin/python" -m galaxy'

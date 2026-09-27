@@ -1,0 +1,48 @@
+name: Update star galaxy
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['galaxy/**', 'requirements.txt', 'action.yml', '.github/workflows/galaxy.yml']
+permissions:
+  contents: write
+concurrency:
+  group: galaxy-assets
+  cancel-in-progress: false
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore previous image for unchanged-data detection
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin assets > /dev/null; then
+            git fetch origin assets
+            git show origin/assets:galaxy.gif > galaxy.gif
+            git show origin/assets:galaxy.json > galaxy.json
+          fi
+      - uses: ./
+        id: galaxy
+      - name: Publish GIF and accuracy manifest
+        if: steps.galaxy.outputs.changed == 'true'
+        shell: bash
+        run: |
+          cp galaxy.gif galaxy.json "$RUNNER_TEMP/"
+          rm galaxy.gif galaxy.json
+          if git show-ref --verify --quiet refs/remotes/origin/assets; then
+            git checkout -B assets origin/assets
+          else
+            git checkout --orphan assets
+            git rm -rf --ignore-unmatch .
+          fi
+          cp "$RUNNER_TEMP/galaxy.gif" "$RUNNER_TEMP/galaxy.json" .
+          git add galaxy.gif galaxy.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update star galaxy'
+          git push origin HEAD:assets
